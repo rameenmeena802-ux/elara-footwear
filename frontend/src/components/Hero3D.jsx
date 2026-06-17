@@ -1,5 +1,4 @@
 import { useRef, useEffect, useState } from 'react';
-import Prism from './Prism';
 
 export default function Hero3D() {
   const containerRef = useRef(null);
@@ -7,13 +6,12 @@ export default function Hero3D() {
   const [iframeLoaded, setIframeLoaded] = useState(false);
 
   useEffect(() => {
-    // Sketchfab script load karo
     const script = document.createElement('script');
     script.src = 'https://sketchfab.com/assets/embed.js';
     script.async = true;
     script.onload = () => {
       setIsLoading(false);
-      setTimeout(() => setIframeLoaded(true), 2000);
+      setTimeout(() => setIframeLoaded(true), 1500);
     };
     script.onerror = () => {
       setIsLoading(false);
@@ -35,28 +33,8 @@ export default function Hero3D() {
   return (
     <section className="relative h-screen w-full overflow-hidden bg-[#060606]">
       
-      {/* ===== PRISM BACKGROUND ANIMATION ===== */}
+      {/* 3D SHOE BACKGROUND */}
       <div className="absolute inset-0 z-0">
-        <Prism
-          animationType="rotate"
-          timeScale={0.3}
-          height={3.0}
-          baseWidth={4.5}
-          scale={4.0}
-          hueShift={0.2}
-          colorFrequency={1.2}
-          noise={0.3}
-          glow={1.2}
-          bloom={0.8}
-          transparent={false}
-        />
-      </div>
-
-      {/* ===== 3D SHOE OVERLAY (Prism ke upar) ===== */}
-      <div 
-        className="absolute inset-0 z-1 transition-opacity duration-1000"
-        style={{ opacity: iframeLoaded ? 1 : 0 }}
-      >
         <div ref={containerRef} className="sketchfab-embed-wrapper w-full h-full">
           <iframe
             title="Reebok 2"
@@ -69,22 +47,22 @@ export default function Hero3D() {
             web-share="true"
             src="https://sketchfab.com/models/3dd0d1490e6e4bddaac5e580ae7f388a/embed?autospin=1&autostart=1&preload=1&ui_controls=0&ui_infos=0&ui_watermark=0&ui_theme=dark"
             className="w-full h-full"
-            style={{ background: 'transparent' }}
+            style={{ background: '#060606' }}
           />
         </div>
       </div>
 
-      {/* ===== LOADING SPINNER (SIRF SPINNER, KOI TEXT NAHI) ===== */}
+      {/* LOADING SPINNER (No Text) */}
       {isLoading && (
         <div className="absolute inset-0 z-20 bg-[#060606] flex items-center justify-center">
           <div className="w-8 h-8 border-2 border-[#333] border-t-white rounded-full animate-spin" />
         </div>
       )}
 
-      {/* ===== GRADIENT OVERLAY (Text ke liye readability) ===== */}
-      <div className="absolute inset-0 z-3 bg-gradient-to-r from-[#060606] via-[#060606]/20 to-transparent" />
+      {/* GRADIENT OVERLAY */}
+      <div className="absolute inset-0 z-1 bg-gradient-to-r from-[#060606] via-[#060606]/30 to-transparent" />
 
-      {/* ===== CONTENT ===== */}
+      {/* CONTENT */}
       <div className="relative z-10 flex flex-col justify-center h-full px-8 md:px-16 lg:px-24 max-w-3xl">
         <div className="text-[10px] md:text-xs font-mono tracking-[0.3em] text-gray-400 mb-6">
           PHYSICAL COORDINATES
