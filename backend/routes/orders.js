@@ -5,11 +5,13 @@ import Cart from '../models/Cart.js';
 
 const router = express.Router();
 
-// Create order (Guest checkout allowed - NO AUTH REQUIRED)
+// ===== CREATE ORDER (Guest checkout allowed) =====
 router.post('/create', async (req, res) => {
   const { shippingAddress, items, total, paymentMethod } = req.body;
   
-  // Check if user is logged in via token (optional)
+  console.log('📦 Order received:', { itemsCount: items?.length, total, paymentMethod });
+
+  // Check if user is logged in via token
   const token = req.header('x-auth-token');
   let userId = null;
   
@@ -17,14 +19,15 @@ router.post('/create', async (req, res) => {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       userId = decoded.user.id;
+      console.log('👤 User ID:', userId);
     } catch (err) {
-      // Token invalid, proceed as guest
       console.log('Guest checkout - token invalid');
     }
   }
 
   // Validation
   if (!shippingAddress || !items || !total) {
+    console.log('❌ Missing fields:', { shippingAddress, items, total });
     return res.status(400).json({ msg: 'Missing required fields' });
   }
 
@@ -44,22 +47,25 @@ router.post('/create', async (req, res) => {
       status: 'pending'
     });
     await order.save();
+    console.log('✅ Order saved:', order._id);
 
     // Only clear cart if user is logged in and cart exists
     if (userId) {
       await Cart.findOneAndDelete({ userId });
+      console.log('🛒 Cart cleared for user:', userId);
     }
 
     res.status(201).json(order);
   } catch (err) {
-    console.error('Order creation error:', err);
+    console.error('❌ Order creation error:', err);
     res.status(500).json({ msg: err.message });
   }
 });
 
-// Get user orders (requires auth)
+// ===== GET USER ORDERS =====
 router.get('/my-orders', async (req, res) => {
   const token = req.header('x-auth-token');
+  console.log('🔑 Token received:', token ? 'Yes' : 'No');
   
   if (!token) {
     return res.status(401).json({ msg: 'No token, authorization denied' });
@@ -68,15 +74,18 @@ router.get('/my-orders', async (req, res) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.user.id;
+    console.log('👤 Fetching orders for user:', userId);
     
     const orders = await Order.find({ userId }).sort({ createdAt: -1 });
+    console.log('📋 Orders found:', orders.length);
     res.json(orders);
   } catch (err) {
+    console.error('❌ Error fetching orders:', err);
     res.status(401).json({ msg: 'Token is not valid' });
   }
 });
 
-// Get single order (requires auth)
+// ===== GET SINGLE ORDER =====
 router.get('/:id', async (req, res) => {
   const token = req.header('x-auth-token');
   
@@ -99,11 +108,12 @@ router.get('/:id', async (req, res) => {
     
     res.json(order);
   } catch (err) {
+    console.error('❌ Error fetching order:', err);
     res.status(401).json({ msg: 'Token is not valid' });
   }
 });
 
-// Update order status (ADMIN ONLY)
+// ===== UPDATE ORDER STATUS (ADMIN ONLY) =====
 router.put('/:id/status', async (req, res) => {
   const { status } = req.body;
   const token = req.header('x-auth-token');
@@ -116,6 +126,7 @@ router.put('/:id/status', async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userEmail = decoded.user.email;
     
+    // Admin check
     if (userEmail !== 'admin@elara.com') {
       return res.status(403).json({ msg: 'Admin access required' });
     }
@@ -130,13 +141,15 @@ router.put('/:id/status', async (req, res) => {
       return res.status(404).json({ msg: 'Order not found' });
     }
     
+    console.log('✅ Order status updated:', order._id, '→', status);
     res.json(order);
   } catch (err) {
+    console.error('❌ Error updating order:', err);
     res.status(401).json({ msg: 'Token is not valid' });
   }
 });
 
-// Get all orders (ADMIN ONLY)
+// ===== GET ALL ORDERS (ADMIN ONLY) =====
 router.get('/admin/all', async (req, res) => {
   const token = req.header('x-auth-token');
   if (!token) {
@@ -152,11 +165,12 @@ router.get('/admin/all', async (req, res) => {
     }
     
     const orders = await Order.find().sort({ createdAt: -1 });
+    console.log('📋 All orders fetched:', orders.length);
     res.json(orders);
   } catch (err) {
+    console.error('❌ Error fetching all orders:', err);
     res.status(401).json({ msg: 'Token is not valid' });
   }
 });
 
-// ✅ DEFAULT EXPORT (YEH ZAROORI HAI)
 export default router;
